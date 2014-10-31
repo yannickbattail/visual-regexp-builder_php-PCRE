@@ -38,6 +38,9 @@
 	margin-left: 20px;
 	margin: 8px;
 	background-color: Khaki;
+	-webkit-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+	-moz-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+	box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
 	/*background-color: Chartreuse;*/
 }
 
@@ -49,6 +52,9 @@
 	margin-left: 20px;
 	margin: 8px;
 	background-color: Turquoise;
+	-webkit-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+	-moz-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+	box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
 	/*background-color: Chartreuse;*/
 }
 

@@ -29,7 +29,7 @@ function getSel(id, node) {
 function getValue(id, node) {
     var e = gel(id, node);
     if (e.tagName == 'SELECT') {
-        return getSel(id);
+        return getSel(id, node);
     } else if (e.tagName == 'INPUT') {
         if (e.type == 'checkbox') {
             return e.checked;

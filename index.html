@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Visual RegExp builder</title>
+<title>Visual RegExp builder for PHP PCRE</title>
 <link rel="stylesheet" type="text/css" href="schema_custom.css" />
 <link rel="stylesheet" type="text/css" href="schema_mandatory.css" />
 
@@ -20,20 +20,23 @@
 <script type="text/javascript" src="schema.js"></script>
 <script type="text/javascript" src="visual-regexp-builder.js"></script>
 <script type="text/javascript" src="examples.js"></script>
-<!-- JOSN for debug -->
+<!-- JSON for debug -->
 <script type="text/javascript" src="json2.js"></script>
 </head>
 <body>
-	<h1>Visual RegExp builder</h1>
+	<h1>Visual RegExp builder for PHP PCRE</h1>
+	<div>
+		PHP Perl-Compatible Regular Expressions <a href="http://php.net/manual/en/book.pcre.php">(Offical Doc)</a>
+	</div>
 	<div>Drag and drop blocks in the schema or type your regular expression in the field "the regexp".</div>
 	<div id="quantifierBlock">
 		<button onclick="closeQuantifierBlock()" style="float: right;">X</button>
 		<input type="radio" name="quantifierRadio" id="quantifierOne" value="optionnal" />
 		one time <br />
 		<input type="radio" name="quantifierRadio" id="quantifierOptionnal" value="optionnal" />
-		optionnal <br />
+		optional <br />
 		<input type="radio" name="quantifierRadio" id="quantifierIndefinitelyOpt" value="indefinitelyOpt" />
-		repeated indefinitely many times optionnal <br />
+		repeated indefinitely many times optional <br />
 		<input type="radio" name="quantifierRadio" id="quantifierIndefinitely" value="indefinitely" />
 		repeated indefinitely many times <br />
 		<input type="radio" name="quantifierRadio" id="quantifierExact" value="atLeast" />
@@ -53,7 +56,12 @@
 		<input type="text" id="quantifierRepeatedMin" value="2" size="2" />
 		to
 		<input type="text" id="quantifierRepeatedMax" value="4" size="2" />
-		times
+		times <br /> Greedy
+		<select id="quantifierGreed" onchange="refresh()">
+			<option value="yes">yes</option>
+			<option value="no">no</option>
+			<option value="possessive">Possessive</option>
+		</select>
 		<button onclick="saveQuantifierBlock()" style="float: right;">Ok</button>
 	</div>
 	<table id="design">
@@ -68,9 +76,18 @@
 				<input type="checkbox" id="atEnd" value="1" onchange="refresh()" />
 				At end of string/line<br /> Options:
 				<ul>
-					<li><input type="checkbox" id="global" value="1" onchange="refresh()" />Global match (match several times)</li>
-					<li><input type="checkbox" id="insensitive" value="1" onchange="refresh()" />Ignore case</li>
-					<li><input type="checkbox" id="multiline" value="1" onchange="refresh()" />Working over multiple lines</li>
+					<li><input type="checkbox" id="optInsensitive" value="1" onchange="refresh()" />Ignore case</li>
+					<li><input type="checkbox" id="optMultiline" value="1" onchange="refresh()" />Working over multiple lines</li>
+					<li><input type="checkbox" id="optDotAll" value="1" onchange="refresh()" />Dot includes newlines</li>
+					<li><input type="checkbox" id="optExtended" value="1" onchange="refresh()" />PCRE extended (whitespace ignored etc)</li>
+					<li><input type="checkbox" id="optReplaceEval" value="1" onchange="refresh()" />replacement evaluates PHP code DEPRECATED</li>
+					<li><input type="checkbox" id="optAnchored" value="1" onchange="refresh()" />Anchored</li>
+					<li><input type="checkbox" id="optDollarEndOnly" value="1" onchange="refresh()" />dollar end only</li>
+					<li><input type="checkbox" id="optS" value="1" onchange="refresh()" />optS</li>
+					<li><input type="checkbox" id="optUngreedy" value="1" onchange="refresh()" />ungreedy</li>
+					<li><input type="checkbox" id="optExtra" value="1" onchange="refresh()" />Extra</li>
+					<li><input type="checkbox" id="optInfoJChanged" value="1" onchange="refresh()" />optInfoJChanged</li>
+					<li><input type="checkbox" id="optUtf8" value="1" onchange="refresh()" />utf8</li>
 				</ul>
 			</td>
 			<td>
@@ -95,6 +112,7 @@
 							<input type="text" id="value-XXX" value="Hello" onkeyup="refresh()" onfocus="this.parentNode.draggable=false" onblur="this.parentNode.draggable=true" />
 							<input type="hidden" id="min-XXX" value="1" />
 							<input type="hidden" id="max-XXX" value="1" />
+							<input type="hidden" id="greed-XXX" value="yes" />
 							<button onclick="showQuantifierBlock(event)" id="showQuantifier-XXX" disabled="disabled">how many</button>
 							<div id="quantifier-XXX" class="quantifier">one time</div>
 						</div>
@@ -109,13 +127,45 @@
 							<input type="hidden" id="type-XXX" value="predefinedClass" />
 							one char
 							<select id="value-XXX" onchange="refresh()">
-								<option value="\d">digit</option>
-								<option value="\s">whitespace</option>
-								<option value="\w">word character</option>
-								<option value="\D">not a digit</option>
+								<option value=".">match any character</option>
+								<option value="\d">a digit</option>
+								<option value="\D">not a decimal digit</option>
+								<option value="\h">an horizontal whitespace</option>
+								<option value="\H">not an horizontal whitespace</option>
+								<option value="\s">a whitespace</option>
 								<option value="\S">not a whitespace</option>
-								<option value="\W">not a word character</option>
-								<option value=".">any char</option>
+								<option value="\v">a vertical whitespace</option>
+								<option value="\V">not a vertical whitespace</option>
+								<option value="\w">a "word" character</option>
+								<option value="\W">not a "word" character</option>
+								<option value="[:alpha:]">a letter</option>
+								<option value="[:lower:]">a lower case letter</option>
+								<option value="[:upper:]">an upper case letter</option>
+								<option value="[:alnum:]">a letter or digit</option>
+								<option value="[:xdigit:]">an hexadecimal digit</option>
+								<option value="[:word:]">word character</option>
+								<option value="[:ascii:]">ascii character</option>
+								<option value="[:blank:]">space or tab only</option>
+								<option value="[:space:]">white space (not quite the same as \s)</option>
+								<option value="[:digit:]">digits</option>
+								<option value="[:punct:]">printing character, excluding letters and digits</option>
+								<option value="[:print:]">printing character, including space</option>
+								<option value="[:graph:]">printing character, excluding space</option>
+								<option value="[:cntrl:]">control character</option>
+								<option value="[:^alpha:]">Not a letter</option>
+								<option value="[:^lower:]">Not a lower case letter</option>
+								<option value="[:^upper:]">Not an upper case letter</option>
+								<option value="[:^alnum:]">Not a letter or digit</option>
+								<option value="[:^xdigit:]">Not an hexadecimal digit</option>
+								<option value="[:^word:]">Not word character</option>
+								<option value="[:^ascii:]">Not ascii character</option>
+								<option value="[:^blank:]">Not space or tab only</option>
+								<option value="[:^space:]">Not white space (not quite the same as \s)</option>
+								<option value="[:^digit:]">Not digits</option>
+								<option value="[:^punct:]">Not printing character, excluding letters and digits</option>
+								<option value="[:^print:]">Not printing character, including space</option>
+								<option value="[:^graph:]">Not printing character, excluding space</option>
+								<option value="[:^cntrl:]">Not control character</option>
 								<!-- 								<option value="\t">tab</option> -->
 								<!-- 								<option value="\n">new line</option> -->
 								<!-- 								<option value="\r">carriage return</option> -->
@@ -139,6 +189,7 @@
 							) one char of this list
 							<input type="hidden" id="min-XXX" value="1" />
 							<input type="hidden" id="max-XXX" value="1" />
+							<input type="hidden" id="greed-XXX" value="yes" />
 							<button onclick="showQuantifierBlock(event)" id="showQuantifier-XXX" disabled="disabled">how many</button>
 							<div id="quantifier-XXX" class="quantifier">one time</div>
 							<div id="group-XXX" class="groupClass"></div>
@@ -158,16 +209,27 @@
 
 						<div id="item-XXX" class="item" ondragstart="drag(event)" draggable="true">
 							<input type="hidden" id="type-XXX" value="group" />
-							Group (capturing
-							<select id="capture-XXX" onchange="refresh()">
-								<option value="yes">Yes</option>
-								<option value="no">No</option>
+							Group (
+							<select id="capture-XXX" onchange="showGroupname(getItemNum(this));refresh()">
+								<option value="yes">Capturing</option>
+								<option value="named">Capturing with name</option>
+								<option value="no">Non capturing</option>
+								<option value="duplicate number">Capturing duplicate number</option>
 								<option value="+lookAhead">Positive lookAhead</option>
 								<option value="-lookAhead">Negative lookAhead</option>
+								<option value="Lookbehind+lookAhead">Lookbehind Positive lookAhead</option>
+								<option value="Lookbehind-lookAhead">Lookbehind Negative lookAhead</option>
+								<option value="Once-only">Once only</option>
+								<option value="comment">Comment</option>
 							</select>
 							)
+							<div id="showGroupname-XXX" style="display: none;">
+								Name:
+								<input type="text" id="groupname-XXX" value="" onkeyup="refresh()" onfocus="this.parentNode.draggable=false" onblur="this.parentNode.draggable=true" />
+							</div>
 							<input type="hidden" id="min-XXX" value="1" />
 							<input type="hidden" id="max-XXX" value="1" />
+							<input type="hidden" id="greed-XXX" value="yes" />
 							<button onclick="showQuantifierBlock(event)" id="showQuantifier-XXX" disabled="disabled">how many</button>
 							<div id="quantifier-XXX" class="quantifier">one time</div>
 							<div id="group-XXX" class="group"></div>
@@ -194,9 +256,7 @@
 				<fieldset>
 					<legend>
 						Test
-						<button onclick="showAdvencedTests(true)">
-						show advanced tests
-						</button>
+						<button onclick="showAdvencedTests(true)">show advanced tests</button>
 					</legend>
 					<textarea id="test" onkeyup="testRegexp()"></textarea>
 				</fieldset>

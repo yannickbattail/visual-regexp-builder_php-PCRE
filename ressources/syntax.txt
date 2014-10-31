@@ -1,0 +1,142 @@
+	
+a|b			start of alternative branch
+(abc)		subpattern
+(?:abc)		non-capturing subpattern
+(?|abc)		subpattern having duplicate numbers
+(?i:abc)	non-capturing subpattern with "i" option
+(?:(?i)abc)	non-capturing subpattern with "i" option
+(?i)abc		set option "i" option
+(?P<name>abc)	named subpattern
+(?<name>abc)	named subpattern
+(?'name'abc)	named subpattern
+(?=abc)		for positive assertions
+(?!abc)		for negative assertions.
+(?<=abc)	Lookbehind assertions for positive assertions
+(?<!abc)	Lookbehind assertions for negative assertions
+(?>abc)		Once-only subpatterns (not capturing subpatterns)
+(?(condition)yes-pattern)	Conditional subpatterns
+(?(condition)yes-pattern|no-pattern)	Conditional subpatterns
+(?#comment)	comments
+(?R)		Recursive patterns
+(?1)		recursive subpatterns
+(?P>name)	recursive named subpatterns
+(?&name)	recursive named subpatterns
+
+------------ quantifiers ----------
+x?			optionnal (0 or 1)
+x*			0 or more quantifier
+x+			1 or more quantifier
+x{3}		exact quantifier
+x{4,}		min quantifier
+x{4,6}		min,max quantifierx?
+x??			optionnal (0 or 1), not greedy?
+x*?			0 or more quantifier, not greedy
+x+?			1 or more quantifier, not greedy
+x{3}		exact quantifier, not greedy ???
+x{4,}		min quantifier, not greedy
+x{4,6}		min,max quantifier, not greedy
+x*+			0 or more quantifier, possessive
+
+------------ char class ----------
+[abacef]	character class definition
+[^xyz]		negative character class definition
+[a-z]		character rang definition
+[a-z0-9]	2 character rang definition
+[0-9abcdef]	character class definition with range
+[\dabcdef]	character class definition with predefined class
+[:alnum:]	predefined class definition
+[:^digit:]	negative predefined class definition
+[12[:^digit:]]	character class definition with predefined class
+
+------------ predefined char class ----------
+.		match any character except newline (by default)
+\d	any decimal digit
+\D	any character that is not a decimal digit
+\h	any horizontal whitespace character (since PHP 5.2.4)
+\H	any character that is not a horizontal whitespace character (since PHP 5.2.4)
+\s	any whitespace character
+\S	any character that is not a whitespace character
+\v	any vertical whitespace character (since PHP 5.2.4)
+\V	any character that is not a vertical whitespace character (since PHP 5.2.4)
+\w	any "word" character
+\W	any "non-word" character
+\p{xx}	a character with the xx property
+\P{xx}	a character without the xx property
+\px		a character with the x property
+\Px		a character without the x property
+\X		matches a Unicode extended grapheme cluster
+[:alnum:]	letters and digits
+[:alpha:]	letters
+[:ascii:]	character codes 0 - 127
+[:blank:]	space or tab only
+[:cntrl:]	control characters
+[:digit:]	decimal digits (same as \d)
+[:graph:]	printing characters, excluding space
+[:lower:]	lower case letters
+[:print:]	printing characters, including space
+[:punct:]	printing characters, excluding letters and digits
+[:space:]	white space (not quite the same as \s)
+[:upper:]	upper case letters
+[:word:]	"word" characters (same as \w)
+[:xdigit:]	hexadecimal digits
+
+------------ assertion/boundary  ----------
+^ab		assert start of subject (or line, in multiline mode)
+zy$		assert end of subject or before a terminating newline (or end of line, in multiline mode)
+\b	word boundary
+\B	not a word boundary
+\A	start of subject (independent of multiline mode)
+\Z	end of subject or newline at end (independent of multiline mode) 
+\z	end of subject (independent of multiline mode)
+\G	first matching position in subject 
+
+------------ non-printing characters visible ----------
+\C		???
+\a		alarm, that is, the BEL character (hex 07)
+\e		escape (hex 1B)
+\f		formfeed (hex 0C)
+\n		newline (hex 0A)
+\r		carriage return (hex 0D)
+\t		tab (hex 09)
+\cx		"control-x", where x is any character
+\xhh	character with hex code hh
+\ddd	character with octal code ddd, or backreference
+
+------------ backreference ----------
+\1			backreference 1
+\g1			backreference 1
+\g{1}		backreference 1
+\k<name>	backreference named: "name" achieved by (?P=name) 
+\k'name'	backreference named: "name" achieved by (?P=name) 
+\k{name}	backreference named: "name" achieved by (?P=name) 
+\g{name}	backreference named: "name" achieved by (?P=name) 
+
+------------ Escape sequences ----------
+\[		the char [
+\]		the char ]
+\{		the char {
+\}		the char }
+\(		the char (
+\)		the char )
+\?		the char ?
+\*		the char *
+\+		the char +
+\^		the char ^
+\$		the char $
+\|		the char |
+\\		the char \
+
+------------ Internal option setting ----------
+i 	for PCRE_CASELESS
+m 	for PCRE_MULTILINE
+s 	for PCRE_DOTALL
+x 	for PCRE_EXTENDED
+e	PREG_REPLACE_EVAL !DEPRECATED
+A	PCRE_ANCHORED
+D	PCRE_DOLLAR_ENDONLY
+S
+U 	for PCRE_UNGREEDY
+X 	for PCRE_EXTRA
+J 	for PCRE_INFO_JCHANGED
+u	PCRE_UTF8
+

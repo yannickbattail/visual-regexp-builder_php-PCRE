@@ -84,6 +84,19 @@ function showStructure() {
 }
 
 /**
+ * @param {String} n
+ * @param {Node} itemNode
+ */
+function showGroupname(n, itemNode) {
+    var val = getValue('capture-' + n, itemNode);
+    if (val == 'named') {
+        gel('showGroupname-' + n, itemNode).style.display = 'inline';
+    } else {
+        gel('showGroupname-' + n, itemNode).style.display = 'none';
+    }
+}
+
+/**
  * @param {Event} event
  */
 function showQuantifierBlock(event) {
@@ -117,6 +130,7 @@ function showQuantifierBlock(event) {
         gel('quantifierRepeatedMin').value = min;
         gel('quantifierRepeatedMax').value = max;
     }
+    setValue('quantifierGreed', gel('max-' + n).value);
 }
 
 /**
@@ -159,6 +173,7 @@ function saveQuantifierBlock(event) {
         gel('min-' + n).value = gel('quantifierRepeatedMin').value;
         gel('max-' + n).value = gel('quantifierRepeatedMax').value;
     }
+    gel('greed-' + n).value = getValue('quantifierGreed');
     setQuantifierText(n);
     refresh();
 }
@@ -170,6 +185,7 @@ function saveQuantifierBlock(event) {
 function setQuantifierText(n, node) {
     var min = gel('min-' + n, node).value;
     var max = gel('max-' + n, node).value;
+    var greed = gel('greed-' + n, node).value;
     var txt = '';
     if ((min == 1) && (max == 1)) {
         txt = 'one time';
@@ -187,6 +203,15 @@ function setQuantifierText(n, node) {
         txt = 'exactly ' + min + ' times';
     } else {
         txt = 'repeated ' + min + ' to ' + max + ' times ';
+    }
+    if (txt != 'one time') {
+        if (!greed || (greed == 'yes')) {
+            txt += ' (greedy)';
+        } else if (greed == 'no') {
+            txt += ' (non-greedy)';
+        } else if (greed == 'possessive') {
+            txt += ' (possessive)';
+        }
     }
     gel('quantifier-' + n, node).innerHTML = txt;
 }
@@ -225,9 +250,7 @@ function saveExample() {
         var exmpl = {
             "name": name,
             "regexp": getValue('regexp'),
-            "tests": [
-                getValue('test')
-            ],
+            "tests": [getValue('test')],
             "testsFails": []
         };
         regexpExamples.push(exmpl);
@@ -316,40 +339,33 @@ function generateCode() {
     var regexp = getValue('regexp');
     var test = getValue('test');
     var code = '';
-    code += 'var myStr = "' + test.replace('"', '\\"') + '";\r\n';
-    code += 'var matches = myStr.match(' + regexp + ');\r\n';
-    code += 'if (matches !== null) {\r\n';
-    code += '    for (var i = 0; i &lt; matches.length; ++i) {\r\n';
-    code += '        var match = matches[i];\r\n';
-    code += '        // do you code with the match "match" variable\r\n';
-    code += '        alert("match: " + match);\r\n';
-    code += '    }\r\n';
+    code += '&lt;?php\r\n';
+    code += '$matches = array();\r\n';
+    code += '$ret = preg_match(\'' + codeEscape(test) + '\', \'' + codeEscape(regexp) + '\', $matches);\r\n';
+    code += 'if ($ret === false) {\r\n';
+    code += '    print(json_encode(\'Error in regex.\'));\r\n';
+    code += '} else if ($ret === 0) {\r\n';
+    code += '    print(json_encode(\'Regex does not match.\'));\r\n';
     code += '} else {\r\n';
-    code += '    alert("The regexp does not matches.");\r\n';
+    code += '    print(json_encode($matches));\r\n';
     code += '}\r\n';
     gel('code').innerHTML = code;
+}
+
+function codeEscape(str) {
+    return str.replace(/['\\\\]/g, '\\$&');
 }
 
 /**
  * 
  */
 function testRegexp() {
-    try {
-        var theRegexp = eval(gel('regexp').value);
-        var res = gel('test').value.match(theRegexp);
-        if (res == null) {
-            gel('errMsg').innerHTML = 'Nothing matches in the string.';
-            gel('result').value = '';
-        } else {
-            // gel('result').value = res.join('\n');
-            gel('result').value = JSON.stringify(res, null, 4);
-            gel('errMsg').innerHTML = '';
-        }
-        gel('regexp').className = 'regexpOk';
-    } catch (e) {
-        gel('errMsg').innerHTML = 'Some thing is wrong in the regexp. Error message: ' + e.message;
-        gel('regexp').className = 'regexpFailed';
-    }
+    /*
+     * try { var theRegexp = eval(gel('regexp').value); var res = gel('test').value.match(theRegexp); if (res == null) { gel('errMsg').innerHTML = 'Nothing matches in the string.'; gel('result').value =
+     * ''; } else { // gel('result').value = res.join('\n'); gel('result').value = JSON.stringify(res, null, 4); gel('errMsg').innerHTML = ''; } gel('regexp').className = 'regexpOk'; } catch (e) {
+     * gel('errMsg').innerHTML = 'Some thing is wrong in the regexp. Error message: ' + e.message; gel('regexp').className = 'regexpFailed'; }
+     */
+    gel('result').innerHTML = 'PHP could not be executed client-side.';
     generateCode();
 }
 
@@ -369,14 +385,41 @@ function structureToRegexp(structure) {
         regexp += '$';
     }
     regexp += '/';
-    if (structure.global) {
-        regexp += 'g';
-    }
-    if (structure.insensitive) {
+    if (structure.optInsensitive) {
         regexp += 'i';
     }
-    if (structure.multiline) {
+    if (structure.optMultiline) {
         regexp += 'm';
+    }
+    if (structure.optDotAll) {
+        regexp += 's';
+    }
+    if (structure.optExtended) {
+        regexp += 'x';
+    }
+    if (structure.optReplaceEval) {
+        regexp += 'e';
+    }
+    if (structure.optAnchored) {
+        regexp += 'A';
+    }
+    if (structure.optDollarEndOnly) {
+        regexp += 'D';
+    }
+    if (structure.optS) {
+        regexp += 'S';
+    }
+    if (structure.optUngreedy) {
+        regexp += 'U';
+    }
+    if (structure.optExtra) {
+        regexp += 'X';
+    }
+    if (structure.optInfoJChanged) {
+        regexp += 'j';
+    }
+    if (structure.optUtf8) {
+        regexp += 'u';
     }
     return regexp;
 }
@@ -391,7 +434,7 @@ function structureToRegexpRecurs(itemGroup) {
         var item = itemGroup[i];
         if (item.type == "word") {
             regexp += escapeCharFactor(item.value);
-            regexp += structureToRegexpQuantifier(item.min, item.max);
+            regexp += structureToRegexpQuantifier(item.min, item.max, item.greed);
         } else if (item.type == "class") {
             regexp += '[';
             if (item.negative) {
@@ -399,7 +442,7 @@ function structureToRegexpRecurs(itemGroup) {
             }
             regexp += structureToRegexpClass(item.group);
             regexp += ']';
-            regexp += structureToRegexpQuantifier(item.min, item.max);
+            regexp += structureToRegexpQuantifier(item.min, item.max, item.greed);
         } else if (item.type == "alternative") {
             regexp += '|';
         } else if (item.type == "or") {
@@ -414,14 +457,26 @@ function structureToRegexpRecurs(itemGroup) {
                 // regexp += '?:';
             } else if (item.capture == 'no') {
                 regexp += '?:';
+            } else if (item.capture == 'named') {
+                regexp += '?<' + item.groupname + '>';
+            } else if (item.capture == 'duplicate number') {
+                regexp += '?|';
             } else if (item.capture == '+lookAhead') {
                 regexp += '?=';
             } else if (item.capture == '-lookAhead') {
                 regexp += '?!';
+            } else if (item.capture == 'Lookbehind+lookAhead') {
+                regexp += '?<=';
+            } else if (item.capture == 'Lookbehind-lookAhead') {
+                regexp += '?<!';
+            } else if (item.capture == 'Once-only') {
+                regexp += '?>';
+            } else if (item.capture == 'comment') {
+                regexp += '?#';
             }
             regexp += structureToRegexpRecurs(item.group);
             regexp += ')';
-            regexp += structureToRegexpQuantifier(item.min, item.max);
+            regexp += structureToRegexpQuantifier(item.min, item.max, item.greed);
         }
     }
     return regexp;
@@ -449,9 +504,10 @@ function structureToRegexpClass(itemGroup) {
 /**
  * @param {String} v1
  * @param {String} v2
+ * @param {String} greed
  * @returns {String} the regexp
  */
-function structureToRegexpQuantifier(v1, v2) {
+function structureToRegexpQuantifier(v1, v2, greed) {
     var regexp = '';
     if (!v1) {
         v1 = 0;
@@ -468,6 +524,11 @@ function structureToRegexpQuantifier(v1, v2) {
         regexp += '{' + v1 + '}';
     } else {
         regexp += '{' + v1 + ',' + v2 + '}';
+    }
+    if (greed == 'no') {
+        regexp += '?';
+    } else if (greed == 'possessive') {
+        regexp += '+';
     }
     return regexp;
 }
@@ -512,6 +573,9 @@ function structureToSchemaRecurs(item) {
     if ((item['type'] == 'word') || (item['type'] == 'class') || (item['type'] == 'group')) {
         setQuantifierText(n, itemNode);
     }
+    if (item['type'] == 'group') {
+        showGroupname(n, itemNode);
+    }
     return itemNode;
 }
 
@@ -525,9 +589,18 @@ function schemaToStructure() {
     item.type = "literal";
     item.atStart = getValue('atStart') ? true : false;
     item.atEnd = getValue('atEnd') ? true : false;
-    item.global = getValue('global') ? true : false;
-    item.insensitive = getValue('insensitive') ? true : false;
-    item.multiline = getValue('multiline') ? true : false;
+    item.optInsensitive = getValue('optInsensitive') ? true : false;
+    item.optMultiline = getValue('optMultiline') ? true : false;
+    item.optDotAll = getValue('optDotAll') ? true : false;
+    item.optExtended = getValue('optExtended') ? true : false;
+    item.optReplaceEval = getValue('optReplaceEval') ? true : false;
+    item.optAnchored = getValue('optAnchored') ? true : false;
+    item.optDollarEndOnly = getValue('optDollarEndOnly') ? true : false;
+    item.optS = getValue('optS') ? true : false;
+    item.optUngreedy = getValue('optUngreedy') ? true : false;
+    item.optExtra = getValue('optExtra') ? true : false;
+    item.optInfoJChanged = getValue('optInfoJChanged') ? true : false;
+    item.optUtf8 = getValue('optUtf8') ? true : false;
     item.group = schemaToStructureRecurs(gel('schema'));
     gel('structure').value = JSON.stringify(item, null, 2);
     return item;
@@ -550,12 +623,14 @@ function schemaToStructureRecurs(nodeRoot) {
                 item.value = getValue('value-' + n);
                 item.min = getValue('min-' + n);
                 item.max = getValue('max-' + n);
+                item.greed = getValue('greed-' + n);
             } else if (gel('type-' + n).value == "class") {
                 item.type = "class";
                 item.negative = getValue('negative-' + n) ? true : false;
                 item.group = schemaToStructureRecurs(gel('group-' + n));
                 item.min = getValue('min-' + n);
                 item.max = getValue('max-' + n);
+                item.greed = getValue('greed-' + n);
             } else if (gel('type-' + n).value == "alternative") {
                 item.type = "alternative";
             } else if (gel('type-' + n).value == "or") {
@@ -565,9 +640,11 @@ function schemaToStructureRecurs(nodeRoot) {
             } else if (gel('type-' + n).value == "group") {
                 item.type = "group";
                 item.capture = getValue('capture-' + n);
+                item.groupname = getValue('groupname-' + n);
                 item.group = schemaToStructureRecurs(gel('group-' + n));
                 item.min = getValue('min-' + n);
                 item.max = getValue('max-' + n);
+                item.greed = getValue('greed-' + n);
             } else if (gel('type-' + n).value == "char") {
                 item.type = "char";
                 item.value = getValue('value-' + n);
@@ -738,7 +815,7 @@ function doMove(source, dest, elem) {
 
 var konamiCode = {
     "i": 0,
-    "list": [ 38, 38, 40, 40, 37, 39, 37, 39, 66, 65 ],
+    "list": [38, 38, 40, 40, 37, 39, 37, 39, 66, 65],
     "init": function() {
         document.getElementsByTagName('BODY')[0].onkeydown = function(e) {
             if (e.keyCode == konamiCode.list[konamiCode.i]) {
@@ -754,7 +831,7 @@ var konamiCode = {
         };
     },
     "callback": function() {
-        alert("konami code! Debug mode ON");
+        alert("konami code detected! Debug mode ON");
         showStructure();
     }
 };

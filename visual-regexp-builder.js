@@ -254,6 +254,12 @@ function SemCallbacks(log, ruleIds) {
         semList[ruleID["regexpgroup"]] = function(state, chars, phraseIndex, phraseCount, data) {
             return semGeneric(state, chars, phraseIndex, phraseCount, data, "regexpgroup");
         };
+        semList[ruleID["regexpnamedgroup"]] = function(state, chars, phraseIndex, phraseCount, data) {
+            return semGeneric(state, chars, phraseIndex, phraseCount, data, "regexpnamedgroup");
+        };
+        semList[ruleID["regexpgroupname"]] = function(state, chars, phraseIndex, phraseCount, data) {
+            return semGenericContent(state, chars, phraseIndex, phraseCount, data, "regexpgroupname");
+        };
         semList[ruleID["regexpclass"]] = function(state, chars, phraseIndex, phraseCount, data) {
             return semGeneric(state, chars, phraseIndex, phraseCount, data, "regexpclass");
         };
@@ -271,6 +277,12 @@ function SemCallbacks(log, ruleIds) {
         };
         semList[ruleID["regexpquantifier"]] = function(state, chars, phraseIndex, phraseCount, data) {
             return semGeneric(state, chars, phraseIndex, phraseCount, data, "regexpquantifier");
+        };
+        semList[ruleID["regexpquantifiersinglechar"]] = function(state, chars, phraseIndex, phraseCount, data) {
+            return semGenericContent(state, chars, phraseIndex, phraseCount, data, "regexpquantifiersinglechar");
+        };
+        semList[ruleID["regexpquantifiergreed"]] = function(state, chars, phraseIndex, phraseCount, data) {
+            return semGenericContent(state, chars, phraseIndex, phraseCount, data, "regexpquantifiergreed");
         };
         semList[ruleID["regexpquantifierrange"]] = function(state, chars, phraseIndex, phraseCount, data) {
             return semGeneric(state, chars, phraseIndex, phraseCount, data, "regexpquantifierrange");
@@ -323,9 +335,18 @@ xmlToJson.parse = function(rootNode) {
 xmlToJson.regexpliteral = function(rootNode) {
     var ret = {};
     ret.type = "literal";
-    ret.global = false;
-    ret.insensitive = false;
-    ret.multiline = false;
+    ret.optInsensitive = false;
+    ret.optMultiline = false;
+    ret.optDotAll = false;
+    ret.optExtended = false;
+    ret.optReplaceEval = false;
+    ret.optAnchored = false;
+    ret.optDollarEndOnly = false;
+    ret.optS = false;
+    ret.optUngreedy = false;
+    ret.optExtra = false;
+    ret.optInfoJChanged = false;
+    ret.optUtf8 = false;
     ret.atStart = false;
     ret.atEnd = false;
     ret.group = [];
@@ -336,14 +357,41 @@ xmlToJson.regexpliteral = function(rootNode) {
         } else if (node.nodeName == "regexpatend") {
             ret.atEnd = true;
         } else if ((node.nodeName == "regexpoptions") && (node.firstChild)) {
-            if (node.firstChild.nodeValue.indexOf('g') !== -1) {
-                ret.global = true;
-            }
             if (node.firstChild.nodeValue.indexOf('i') !== -1) {
-                ret.insensitive = true;
+                ret.optInsensitive = true;
             }
             if (node.firstChild.nodeValue.indexOf('m') !== -1) {
-                ret.multiline = true;
+                ret.optMultiline = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('s') !== -1) {
+                ret.optDotAll = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('x') !== -1) {
+                ret.optExtended = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('e') !== -1) {
+                ret.optReplaceEval = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('A') !== -1) {
+                ret.optAnchored = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('D') !== -1) {
+                ret.optDollarEndOnly = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('S') !== -1) {
+                ret.optS = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('U') !== -1) {
+                ret.optUngreedy = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('X') !== -1) {
+                ret.optExtra = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('j') !== -1) {
+                ret.optInfoJChanged = true;
+            }
+            if (node.firstChild.nodeValue.indexOf('u') !== -1) {
+                ret.optUtf8 = true;
             }
         } else if (node.nodeName == "regexpalternative") {
             ret.group.push({
@@ -375,35 +423,52 @@ xmlToJson.regexpsequence = function(rootNode) {
             tab.push(lastItem);
         } else if (node.nodeName == "regexpquantifier") {
             if (lastItem) {
-                lastItem.min = "1";
-                lastItem.max = "1";
-                if (node.firstChild.nodeType == Node.TEXT_NODE) {
-                    if (node.firstChild.nodeValue.trim() === '?') {
-                        lastItem.min = "0";
-                        lastItem.max = "1";
-                    } else if (node.firstChild.nodeValue.trim() === '+') {
-                        lastItem.min = "1";
-                        lastItem.max = "";
-                    } else if (node.firstChild.nodeValue.trim() === '*') {
-                        lastItem.min = "0";
-                        lastItem.max = "";
-                    }
-                } else {
-                    var n = node.getElementsByTagName('min');
-                    if (n && n[0]) {
-                        lastItem.min = n[0].firstChild.nodeValue.trim();
-                        n = node.getElementsByTagName('max');
-                        if (n && n[0]) {
-                            lastItem.max = n[0].firstChild.nodeValue.trim();
-                        } else {
-                            lastItem.max = lastItem.min;
-                        }
-                    }
-                }
+                xmlToJson.regexpquantifier(node, lastItem);
+
             }
         }
     }
     return tab;
+};
+
+
+xmlToJson.regexpquantifier = function(rootNode, lastItem) {
+    lastItem.min = "1";
+    lastItem.max = "1";
+    lastItem.greed = "yes";
+    for (var i = 0; i < rootNode.childNodes.length; i++) {
+        var node = rootNode.childNodes[i];
+        //console.log(node);
+        if (node.nodeName == "regexpquantifiersinglechar") {
+            if (node.firstChild.nodeValue.trim()=== '?') {
+                lastItem.min = "0";
+                lastItem.max = "1";
+            } else if (node.firstChild.nodeValue.trim() === '+') {
+                lastItem.min = "1";
+                lastItem.max = "";
+            } else if (node.firstChild.nodeValue.trim() === '*') {
+                lastItem.min = "0";
+                lastItem.max = "";
+            }
+        } else  if (node.nodeName == "regexpquantifierrange") {
+            var n = node.getElementsByTagName('min');
+            if (n && n[0]) {
+                lastItem.min = n[0].firstChild.nodeValue.trim();
+                n = node.getElementsByTagName('max');
+                if (n && n[0]) {
+                    lastItem.max = n[0].firstChild.nodeValue.trim();
+                } else {
+                    lastItem.max = lastItem.min;
+                }
+            }
+        } else  if (node.nodeName == "regexpquantifiergreed") {
+            if (node.firstChild && node.firstChild.nodeValue.trim() == '?') {
+                lastItem.greed = "no";
+            } else if (node.firstChild && node.firstChild.nodeValue.trim() == '+') {
+                lastItem.greed = "possessive";
+            }
+        }
+    }
 };
 
 xmlToJson.regexpclass = function(rootNode) {
@@ -446,17 +511,32 @@ xmlToJson.regexpgroup = function(rootNode) {
     var ret = {};
     ret.type = "group";
     ret.capture = "yes";
+    ret.groupname = "";
     ret.group = [];
     for (var i = 0; i < rootNode.childNodes.length; i++) {
         var node = rootNode.childNodes[i];
         //
         if (node.nodeName == "regexpgroupcapture") {
-            if (node.firstChild.nodeValue.trim() === '?:') {
+            //
+            if (node.firstChild.nodeName === 'regexpnamedgroup') {
+                ret.groupname = node.firstChild.firstChild.firstChild.nodeValue.trim();
+                ret.capture = "named";
+            } else if (node.firstChild.nodeValue.trim() === '?:') {
                 ret.capture = "no";
+            } else if (node.firstChild.nodeValue.trim() === '?|') {
+                ret.capture = "duplicate number";
             } else if (node.firstChild.nodeValue.trim() === '?=') {
                 ret.capture = "+lookAhead";
             } else if (node.firstChild.nodeValue.trim() === '?!') {
                 ret.capture = "-lookAhead";
+            } else if (node.firstChild.nodeValue.trim() === '?<=') {
+                ret.capture = "Lookbehind+lookAhead";
+            } else if (node.firstChild.nodeValue.trim() === '?<!') {
+                ret.capture = "Lookbehind-lookAhead";
+            } else if (node.firstChild.nodeValue.trim() === '?>') {
+                ret.capture = "Once-only";
+            } else if (node.firstChild.nodeValue.trim() === '?#') {
+                ret.capture = "comment";
             }
         } else if (node.nodeName == "regexpalternative") {
             ret.group.push({
@@ -569,6 +649,7 @@ function regexpToStructure(regexp) {
         return null;
     }
     
+    //gel('structure').value = semCallbacks.xmlTree;
     var oParser = new DOMParser();
     var oDOM = oParser.parseFromString(semCallbacks.xmlTree, "text/xml");
     

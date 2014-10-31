@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>syntax support</title>
+<style type="text/css">
+.ok {
+	background-color: chartreuse;
+}
+.progress {
+	background-color: orange;
+}
+.no {
+	background-color: white;
+}
+.titles {
+	background-color: lightblue;
+}
+th {
+	background-color: silver;
+}
+</style>
+</head>
+<body>
+	<table border="1">
+		<thead>
+			<tr>
+				<th>syntax name</th><th>examples</th><th>matches</th><th>ABNF</th><th>R 2 Struct</th><th>struc 2 R</th><th>struc 2 S</th><th>S 2 Struct</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<th colspan="8" class="titles">Alternative</th>
+			</tr>
+			<tr>
+				<th>alternative</th><td>a|b</td><td>a OR b</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">Subpattern</th>
+			</tr>
+			<tr>
+				<th>subpattern</th><td>(abc)</td><td>abc</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>non-capturing subpattern</th><td>(?:abc)</td><td>abc</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>subpattern having duplicate numbers</th><td>(?|abc)</td><td>abc</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>non-capturing subpattern with option</th><td>(?i:abc)</td><td>abc</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>set option option</th><td>(?i)abc</td><td>abc AND ABC AND aBc</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>named subpattern</th><td>(?P&lt;name&gt;abc) (?&lt;name&gt;abc) (?P'name'abc) </td><td>abc</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>positive assertions</th><td>(?=abc)</td><td>abc</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>negative assertions</th><td>(?!abc)</td><td>abc</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>Lookbehind assertions for positive assertions</th><td>(?&lt;=abc)</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>Lookbehind assertions for negative assertions</th><td>(?&lt;!abc)</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>Once-only subpatterns</th><td>(?&gt;abc)</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>Conditional subpatterns</th><td>(?(condition)yes-pattern)</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>Conditional subpatterns</th><td>(?(condition)yes-pattern|no-pattern)</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>comments</th><td>(?#comment)</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>Recursive patterns</th><td>(?R)</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>recursive subpatterns (1)</th><td>(?1)</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>recursive named subpatterns</th><td>(?P>name) (?&name)</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">quantifiers</th>
+			</tr>
+			<tr>
+				<th>optionnal (0 or 1 time)</th><td>x?</td><td>"" AND "x"</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>0 or more time</th><td>x*</td><td>"" AND "x" AND "xxxx"...</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>1 or more time</th><td>x+</td><td>"x" AND "xxxx"...</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>exact</th><td>x{3}</td><td>"xxx"</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>min</th><td>x{4,}</td><td>"xxxx" AND "xxxxxxx"..</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>min,max</th><td>x{4,6}</td><td>"xxxx" AND "xxxxx" AND "xxxxxx"</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>optionnal (0 or 1 time), not greedy</th><td>x??</td><td>"" AND "x"</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>0 or more time, not greedy</th><td>x*?</td><td>"" AND "x" AND "xxxx"...</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>1 or more time, not greedy</th><td>x+?</td><td>"x" AND "xxxx"...</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>exact, not greedy???</th><td>x{3}?</td><td>"xxx"</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>min, not greedy</th><td>x{4,}?</td><td>"xxxx" AND "xxxxxxx"..</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>min,max, not greedy</th><td>x{4,6}?</td><td>"xxxx" AND "xxxxx" AND "xxxxxx"</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>0 or more quantifier, possessive</th><td>x*+</td><td>"xxxx" AND "xxxxx" AND "xxxxxx"</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">character class</th>
+			</tr>
+			<tr>
+				<th>character class</th><td>[abcdef]</td><td>a OR b OR c OR d OR e OR f</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>negative character class</th><td>[^abcdef]</td><td>every char but NOT abcdef</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>predefined class</th><td>\d</td><td>a digit</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>predefined class 2 points</th><td>[:alnum:]</td><td>an alnumeric char</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>negative predefined class 2 dots</th><td>[:^digit:]</td><td>NOT a digit</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>multiple predefined class and range</th><td>[ab[:^alpha:]\d]</td><td>a OR b OR a digit</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">predefined character class list</th>
+			</tr>
+			<tr>
+				<th>match any character except newline (by default)</th><td>.</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>backslashed predefined character class</th><td>\d\D\h\H\s\S\v\V\w\W</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>2 dots predefined character class</th><td>[:alnum:][:alpha:][:ascii:][:blank:][:cntrl:]<br />[:digit:][:graph:][:lower:][:print:][:punct:]<br />[:space:][:upper:][:word:][:xdigit:]</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>a character with the x Unicode property</th><td>\p{xx} \px	</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>a character without the x Unicode property</th><td>\P{xx} \Px</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>matches a Unicode extended grapheme cluster</th><td>\X</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">assertion/boundary </th>
+			</tr>
+			<tr>
+				<th>assert start of subject (or line, in multiline mode)</th><td>^ab</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>assert end of subject or before a terminating newline (or end of line, in multiline mode)</th><td>zy$</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>word boundary</th><td>\b</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>not a word boundary</th><td>\B</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>start of subject (independent of multiline mode)</th><td>\A</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>end of subject or newline at end (independent of multiline mode)</th><td>\Z</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>end of subject (independent of multiline mode)</th><td>\z</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>first matching position in subject</th><td>\G</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">non-printing characters visible</th>
+			</tr>
+			<tr>
+				<th>???</th><td>\C</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>BEL, escape, formfeed, newline, carriage return, tab</th><td>\a\e\f\n\r\t</td><td></td><td class="ok">ok</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>"control-x", where x is any character</th><td>\cx</td><td></td><td class="ok">ok</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>character with hex code hh</th><td>\xhh</td><td></td><td class="ok">ok</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>character with octal code ddd, or backreference</th><td>\ddd</td><td></td><td class="ok">ok</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">backreferences</th>
+			</tr>
+			<tr>
+				<th>numeric backreference</th><td>\1</td><td></td><td class="progress">progress</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>numeric backreference</th><td>\g1</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>numeric backreference</th><td>\g{1}</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>named backreference</th><td>\k&lt;name&gt;</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>named backreference</th><td>\k'name'</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>named backreference</th><td>\k{name}</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			<tr>
+				<th>named backreference</th><td>\g{name}</td><td></td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td class="no">no</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">Escape sequences</th>
+			</tr>
+			<tr>
+				<th>Escape magic chars</th><td>\[\]\{\}\(\)\?\*\+\^\$\|\\</td><td>[]{}()?*+^$|</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			
+			<tr>
+				<th colspan="8" class="titles">Internal option setting</th>
+			</tr>
+			<tr>
+				<th>CASELESS</th><td>i</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>MULTILINE</th><td>m</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>DOTALL</th><td>s</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>EXTENDED</th><td>x</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>PREG_REPLACE_EVAL !DEPRECATED</th><td>e</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>ANCHORED</th><td>A</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>DOLLAR_ENDONLY</th><td>D</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th></th><td>S</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>UNGREEDY</th><td>U</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>EXTRA</th><td>X</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>INFO_JCHANGED</th><td>j</td><td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+			<tr>
+				<th>UTF8</th><td>u</td><td></td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td><td class="ok">ok</td>
+			</tr>
+		</tbody>
+	</table>
+</body>
+</html>
